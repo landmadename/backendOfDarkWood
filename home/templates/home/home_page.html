@@ -1,0 +1,224 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1000px, initial-scale=1.0">
+    <link  href={% static 'css/cropper.min.css' %} rel="stylesheet">
+    <link  href={% static 'css/index.css' %} rel="stylesheet">
+    <link  href={% static 'css/bootstrap.min.css' %} rel="stylesheet">
+    <script src={% static 'js/jquery-2.1.4.min.js' %}></script>
+    <script src={% static 'js/cropper.min.js' %}></script>
+    <script src={% static 'js/bootstrap.min.js' %}></script>
+    <title>框条编辑器</title>
+</head>
+<body ondrop="drop(event)" ondragover="allowDrop(event)">
+    <div class="container">
+        <nav class="navbar navbar-light"  style="background-color: #e3f2fd">
+            <a class="navbar-brand" href="#">Dark Wood</a>
+            <span class="navbar-text" id="filename">
+              hi
+            </span>
+        </nav>    
+        <div class="row" style="margin-top: 30px;">
+            <div class="col">
+                <img id="image" src={% static 'img/hi.png' %}>
+            </div>
+            <div class="col">
+              <div id="prev_box" style="overflow-y: hidden;overflow-x: hidden;">
+                <div class="prev_canvas_box">
+                  <canvas id="prev" height="120" width="120"></canvas>
+                </div>
+                <!-- <br> -->
+                <br>
+                <table>
+                  <tr>
+                    <td>
+                      <button type="button" class="btn btn-outline-info btn-sm" id="lock_buttton" onclick="reverse_lock()">🔓选方框</button>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-outline-info btn-sm" onclick="save_prev()">存为预览图</button>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <br>
+              <div id="frame_box">
+                <div class="frame_canvas_box">
+                  <canvas id="pattern" height="60" width="400"></canvas>
+                </div>
+                <br>
+                <table>
+                  <tr>
+                    <td>
+                      <button type="button" class="btn btn-outline-primary btn-sm" onclick="cropper.rotate(-90);">左转90°</button>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-outline-primary btn-sm" onclick="cropper.rotate(90);">右转90°</button>
+                    </td>
+                    <td>&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button type="button" class="btn btn-outline-info btn-sm" onclick="cropper.rotate(-1);">左转1°</button>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-outline-info btn-sm" onclick="cropper.rotate(1);">右转1°</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('fileinput').click()">选文件</button>
+                      <input type="file" onchange="upload()" name="fileDemo" id="fileinput" style="display:none"/>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button type="button" class="btn btn-outline-info btn-sm" onclick="save('top')">存为顶部</button>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-outline-info btn-sm" onclick="save('bottom')">存为底部</button>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-outline-info btn-sm" onclick="save('card')">存为卡纸</button>
+                    </td>
+                  </tr>
+                </table>  
+              </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+  var cropper;
+  var name = "hi";
+  var locked = false;
+  var pattern_height = 60
+  var pattern_width = 60
+  var prev_height = 120
+  var prev_width = 120
+  var frame_cvs=window.document.getElementById("pattern")
+  var frame_ctx=frame_cvs.getContext("2d");
+  var prev_cvs=window.document.getElementById("prev")
+  var prev_ctx=prev_cvs.getContext("2d");
+
+  window.onload = () => {
+  	cropper = new Cropper(image, {
+    ready(){
+      image.addEventListener("cropend", (e)=>{
+        draw_pattern()
+        draw_pattern()
+        draw_prev()
+      })
+    }
+    })
+  }
+
+  function reverse_lock() {
+    if (locked) {
+      cropper.setAspectRatio(NaN)
+      locked = false
+      document.getElementById("lock_buttton").innerText = "🔓选方框"
+    } else {
+      cropper.setAspectRatio(1)
+      locked = true
+      document.getElementById("lock_buttton").innerText = "🔒选方框"
+    }
+  }
+
+  function save_prev() {
+    var new_cvs = document.createElement('canvas')
+    var new_ctx = new_cvs.getContext('2d')
+    var a = document.createElement('a')
+    new_cvs.width = prev_height
+    new_cvs.height = prev_height
+    new_ctx.putImageData(prev_ctx.getImageData(0,0,prev_height,prev_height),0,0)
+    var data = new_cvs.toDataURL('image/png')
+    a.download = name + '_prev.png'
+    a.href = data
+    a.dataset.downloadurl = ['image/png', a.download, a.href].join(':')
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    set_zoom()
+  }
+
+  function save(type) {
+    var new_cvs = document.createElement('canvas')
+    var new_ctx = new_cvs.getContext('2d')
+    var a = document.createElement('a')
+    new_cvs.width = pattern_width*2
+    new_cvs.height = pattern_height
+    new_ctx.putImageData(frame_ctx.getImageData(0,0,pattern_width*2,pattern_height),0,0)
+    var data = new_cvs.toDataURL('image/png')
+    a.download = name + '_' + type + '.png'
+    a.href = data
+    a.dataset.downloadurl = ['image/png', a.download, a.href].join(':')
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    set_zoom()
+  }
+
+  function set_name(filename) {
+    var first = filename.lastIndexOf(".");
+    var namelength = filename.length;
+    name = filename.substring(0, first );
+    document.getElementById("filename").innerText = name;
+  }
+
+  function set_zoom() {
+    var containerData = cropper.getContainerData();
+    cropper.zoomTo(.5, {
+      x: containerData.width / 2,
+      y: containerData.height / 2,
+    });
+  }
+
+  function loadImg(file) {
+    var reader = new FileReader();
+    reader.readAsDataURL(file);
+    set_name(file.name)
+    reader.onload = function (e) {
+      cropper.replace(this.result)
+    }
+  }
+
+  function upload() {
+    loadImg(document.getElementById("fileinput").files[0])
+  }
+
+  function drop(e) {
+    e.preventDefault();
+    loadImg(e.dataTransfer.files[0])
+  }
+
+  function allowDrop(e){
+    e.preventDefault();
+  }
+
+  function draw_prev() {
+    var img = cropper.getCroppedCanvas()
+    prev_width = img.width*prev_height/img.height
+    prev_ctx.clearRect(0,0,prev_height,prev_height)
+    prev_ctx.drawImage(img,0,0,prev_width,prev_height)
+  }
+
+  function draw_pattern() {
+    var img = cropper.getCroppedCanvas()
+    var flip = -1
+    pattern_width = img.width*pattern_height/img.height
+    frame_ctx.clearRect(0,0,1000,1000)
+    for (var i = 0; i < 30; i++) {
+      frame_ctx.drawImage(img,0,0,pattern_width,pattern_height)    
+      frame_ctx.translate(pattern_width*2, 0)
+    }
+    frame_ctx.scale(-1,1) 
+    for (var i = 0; i < 30; i++) {
+      frame_ctx.drawImage(img,0,0,pattern_width,pattern_height)    
+      frame_ctx.translate(pattern_width*2, 0)
+    }
+  }
+</script>
+</html>

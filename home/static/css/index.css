@@ -1,0 +1,22 @@
+img {
+    display: block;
+    /* This rule is very important, please don't ignore this */
+    max-width: 100%;
+  }
+td {
+  width: 92px;
+}
+button {
+  width: 90px;
+  background-color: #e3f2fd;
+}
+.frame_canvas_box {
+  border: 5px solid #e3f2fd;
+  width: 410px;
+  height: 70px;
+}
+.prev_canvas_box {
+  border: 5px solid #e3f2fd;
+  width: 130px;
+  height: 130px;
+}
