@@ -28,7 +28,7 @@ class FramePage(Page):
         help_text='框顶部',
         verbose_name="框顶部"
     )
-    
+
     bottom = models.ForeignKey(
         'wagtailimages.Image',
         null=True,
@@ -38,19 +38,27 @@ class FramePage(Page):
         help_text='框底部',
         verbose_name="框底部"
     )
+
+    width = models.FloatField(
+        null=True,
+        blank=True,
+        help_text='单位为厘米',
+        verbose_name="框条宽度"
+    )
     
     content = StreamField(
         BaseStreamBlock(), verbose_name="介绍", blank=True
     )
 
     history = StreamField(
-        HistoryStreamBlock(), verbose_name="历史效果图", blank=True
+        HistoryStreamBlock(), verbose_name="历史效果图", blank=True, null=True
     )
 
     content_panels = Page.content_panels + [
         ImageChooserPanel('prev'),
         ImageChooserPanel('top'),
         ImageChooserPanel('bottom'),
+        FieldPanel('width'),
         StreamFieldPanel ('content'),
         StreamFieldPanel ('history'),
     ]
@@ -58,6 +66,7 @@ class FramePage(Page):
         APIField('prev'),
         APIField('top'),
         APIField('bottom'),
+        APIField('width'),
         APIField('content'),
         APIField('history'),
     ]

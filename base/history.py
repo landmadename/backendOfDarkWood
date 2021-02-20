@@ -7,8 +7,8 @@ class History(StructBlock):
     Custom `StructBlock` for utilizing images with associated caption and
     attribution data
     """
-    image = ImageChooserBlock(required=True)
-    card_page = PageChooserBlock(required=False)
+    image = ImageChooserBlock(required=False,null=True)
+    card_page = PageChooserBlock(required=False,null=True)
 
     class Meta:
         icon = 'image'
